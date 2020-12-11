@@ -13,7 +13,7 @@ import {
   SigninScreen,
   SignupScreen,
 } from "./src/Screens/Screens";
-//import "./src/Fire";
+import "./src/Fire";
 
 import { Provider } from "react-redux";
 import { createAppContainer } from "react-navigation";
@@ -22,6 +22,8 @@ import { createAppContainer } from "react-navigation";
 const Stack = createStackNavigator<RootStackParamList>();
 
 export default function App() {
+
+  
   return (
     <NavigationContainer>
         <Stack.Navigator initialRouteName="SignIn">

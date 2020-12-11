@@ -47,7 +47,6 @@ export function AddScreen({ navigation }: Props) {
     }
     let pickerResult = await ImagePicker.launchImageLibraryAsync();
     // カメラロールの準備を先にしておく
-    console.log(pickerResult);
     // pikerResultに画像情報を入れる
 
     if (pickerResult.cancelled === true) {
@@ -74,7 +73,7 @@ export function AddScreen({ navigation }: Props) {
       return;
     }
     // タイトルが設定されていないとアラート
-    if (selectedImage?.localUri === "") {
+    if (!selectedImage?.localUri) {
       alert("写真が有りません");
       return;
     }

@@ -73,7 +73,7 @@ export function ProfileEditScreen({ navigation }: Props) {
       return;
     }
     // タイトルが設定されていないとアラート
-    if (selectedImage?.localUri === "") {
+    if (!selectedImage?.localUri) {
       alert("写真が有りません");
       return;
     }

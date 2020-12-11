@@ -10,6 +10,7 @@ import {
   ListRenderItemInfo,
   TouchableOpacity,
   Alert,
+  Button,
 } from "react-native";
 import moment from "moment";
 import home from "../../assets/icons8-home-50.png";
@@ -19,20 +20,31 @@ import man from "../../assets/icons8-person-64.png";
 import { StackNavigationProp } from "@react-navigation/stack";
 import * as ImagePicker from "expo-image-picker";
 
-import { useFocusEffect } from "@react-navigation/native";
+import {
+  useFocusEffect,
+  RouteProp,
+  useNavigation,
+} from "@react-navigation/native";
 import { loadPictureInfoListAsync, removePictureInfoAsync } from "../Store";
 
 import Icon from "react-native-vector-icons/FontAwesome";
+import firebase from "firebase";
 
 
 // ナビゲーション情報を設定
-type Props = {
-  navigation: StackNavigationProp<RootStackParamList, "Home">;
-};
+// type Props = {
+//   navigation: StackNavigationProp<RootStackParamList, "Home">;
+// };
 const screenWidth = Dimensions.get("screen").width;
 const screenHeight = Dimensions.get("screen").height;
+type ChatScreenRouteProps = RouteProp<RootStackParamList, "Home">;
+type Props = {
+  route: ChatScreenRouteProps;
+};
 
-export function HomeScreen({ navigation }: Props) {
+export function HomeScreen(props: Props) {
+  
+  const currentUser = props.route.params.user;
   const [hasPermission, setHasPermission] = useState(false);
   const [pictureInfoList, setPictureInfoList] = useState<PictureInfo[]>([]);
 
@@ -84,6 +96,7 @@ export function HomeScreen({ navigation }: Props) {
     ]);
   };
   // 画面遷移
+  const navigation = useNavigation();
   const handleAddButton = () => {
     navigation.navigate("Add");
   };
@@ -109,14 +122,17 @@ export function HomeScreen({ navigation }: Props) {
           </Text>
         </View>
       </TouchableOpacity>
-      
     );
   };
 
+
+
+  
   // FlatList部分
   const PictureDiaryList = () => {
     return (
       <View style={{ flex: 1 }}>
+          <Text>{currentUser.email}でログイン中</Text>
         <FlatList
           data={pictureInfoList}
           renderItem={renderPictureInfo}

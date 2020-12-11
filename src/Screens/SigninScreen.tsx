@@ -20,8 +20,8 @@ export function SigninScreen() {
   const [password, setPassword] = useState("");
 
   const navigation = useNavigation();
-  const toChat = (user: signedInUser) => {
-    navigation.navigate("Chat", { user: user });
+  const toHome = (user: signedInUser) => {
+    navigation.navigate("Home", { user: user });
   };
   const toSignup = () => {
     navigation.navigate("SignUp");
@@ -40,7 +40,7 @@ export function SigninScreen() {
           email: user.user.email,
           uid: user.user.uid,
         };
-        toChat(currentUser);
+        toHome(currentUser);
       })
       .catch((error) => {
         console.log(error);
@@ -48,10 +48,13 @@ export function SigninScreen() {
       });
   };
 
+  
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView style={styles.container}>
         <View style={styles.titleAndFieldView}>
+          
           <Text style={styles.screenTitle}>Sign In!</Text>
           <TextInput
             style={styles.inputField}

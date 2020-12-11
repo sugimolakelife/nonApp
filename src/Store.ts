@@ -24,7 +24,7 @@ export const savePictureInfoAsync = async (pictureInfo: PictureInfo) => {
 export const saveProfileInfoAsync = async (profileInfo: PictureInfo) => {
     await storage.save({
     key: PROFILE_INFO_KEY,
-    id: `${profileInfo.createdAt}`,
+    id: PROFILE_INFO_KEY,
     data: profileInfo
     });
 };
@@ -34,9 +34,13 @@ export const loadPictureInfoListAsync = async () => {
     const pictureInfoList = await storage.getAllDataForKey<PictureInfo>(PICTURE_INFO_KEY);
     return pictureInfoList;
 };
-export const loadProfileInfoListAsync = async () => {
-    const profileInfoList = await storage.getAllDataForKey<PictureInfo>(PROFILE_INFO_KEY);
-    return profileInfoList;
+export const loadProfileInfoAsync = async () => {
+    //const profileInfoList = await storage.getAllDataForKey<PictureInfo>(PROFILE_INFO_KEY);
+    const profileInfo = await storage.load({
+        key: PROFILE_INFO_KEY, 
+        id: PROFILE_INFO_KEY
+    });
+    return profileInfo;
 };
 
 // 削除処理 keyに対応するデータの中からidのデータを削除
@@ -50,6 +54,6 @@ export const removePictureInfoAsync = async (pictureInfo: PictureInfo) => {
 export const removeProfileInfoAsync = async (pictureInfo: PictureInfo) => {
     await storage.remove({
     key: PROFILE_INFO_KEY,
-    id: `${pictureInfo.createdAt}`,
+    id: PROFILE_INFO_KEY,
     });
 }
