@@ -13,16 +13,18 @@ import {
 import man from "../../assets/icons8-person-64.png";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { loadProfileInfoAsync, removeProfileInfoAsync } from "../Store";
-import { useFocusEffect } from "@react-navigation/native";
+import { RouteProp, useFocusEffect } from "@react-navigation/native";
 import firebase from "firebase";
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, "Profile">;
+  route: RouteProp<RootStackParamList, 'Profile'>;
 };
 
-export function ProfileScreen({ navigation }: Props) {
+export function ProfileScreen(props: Props) {
   const [profileInfo, setProfileInfo] = useState<PictureInfo>();
-  const user = firebase.auth().currentUser;
+  const currentUser = props.route.params.user;
+  const navigation = props.navigation;
 
   // 画像リストをストレージから読み込み、更新する
   const updateProfileInfoAsync = async () => {
@@ -42,7 +44,7 @@ export function ProfileScreen({ navigation }: Props) {
   };
 
   const handleEditButton = async () => {
-    navigation.navigate("Edit");
+    navigation.navigate("Edit",{user:currentUser});
 
     // const db = firebase.firestore();
       //ドキュメント取得
@@ -126,7 +128,7 @@ export function ProfileScreen({ navigation }: Props) {
           style={styles.avatar}
         />
         <View style={styles.pictureInfoContainer}>
-          <Text style={styles.pictureTitle}>{`${user?.displayName}`}</Text>
+          <Text style={styles.pictureTitle}>{`${currentUser.email}`}</Text>
         </View>
 
         <TouchableOpacity style={styles.editButton} onPress={handleEditButton}>

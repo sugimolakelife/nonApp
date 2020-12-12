@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   Image,
@@ -22,23 +21,19 @@ import man from "../../assets/icons8-person-64.png";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Thumbnail } from "native-base";
 import firebase from "firebase";
+import { RouteProp } from "@react-navigation/native";
 
-
-
-
+type ChatScreenRouteProps = RouteProp<RootStackParamList, "Edit">;
 type Props = {
+  route: ChatScreenRouteProps;
   navigation: StackNavigationProp<RootStackParamList, "Edit">;
 };
 
-export function ProfileEditScreen({ navigation }: Props) {
+export function ProfileEditScreen(props: Props) {
+  const currentUser = props.route.params.user;
   const [titleText, setTitleText] = useState("");
   const pictureURICache = React.useRef("");
-  const user = firebase.auth().currentUser;
-
-  interface SelectedImageInfo {
-    localUri: string;
-  }
-  const [selectedImage, setSelectedImage] = useState<SelectedImageInfo>();
+  const [pictureURI, setPictureURI] = useState("");
 
   let openImagePickerAsync = async () => {
     let permissionResult = await ImagePicker.requestCameraRollPermissionsAsync();
@@ -47,7 +42,10 @@ export function ProfileEditScreen({ navigation }: Props) {
       alert("カメラロールへのアクセス許可が必要です");
       return;
     }
-    let pickerResult = await ImagePicker.launchImageLibraryAsync();
+    let pickerResult = await ImagePicker.launchImageLibraryAsync({
+      aspect: [1, 1],
+      allowsEditing: true,
+    });
     // カメラロールの準備を先にしておく
     console.log(pickerResult);
     // pikerResultに画像情報を入れる
@@ -55,7 +53,7 @@ export function ProfileEditScreen({ navigation }: Props) {
     if (pickerResult.cancelled === true) {
       return;
     } else {
-      setSelectedImage({ localUri: pickerResult.uri });
+      setPictureURI(pickerResult.uri);
       pictureURICache.current = pickerResult.uri;
     }
   };
@@ -76,36 +74,79 @@ export function ProfileEditScreen({ navigation }: Props) {
       return;
     }
     // タイトルが設定されていないとアラート
-    if (!selectedImage?.localUri) {
+    if (pictureURI === "") {
       alert("写真が有りません");
       return;
     }
 
+    // 画像のアップロード
+    const storageRef = firebase.storage().ref("Avatar");
+    const remotePath = `${moment.now()}.jpg`;
+    const ref = storageRef.child(remotePath);
+    // const url = await ref.getDownloadURL();
+    const response = await fetch(pictureURI);
+    // const responses = await fetch(url); //←
+    const blob = await response.blob();
+    // const bloba = await responses.blob() //←
+    const task = await ref.put(blob);
+    const avatar = await task.ref.getDownloadURL();
+
+    // ログイン中のユーザーデータがあるか検索
+    const query = await firebase.firestore().collection('User').where('userId', '==', currentUser.uid);
+    const snapshot = await query.get();
+
+    if (snapshot.empty) {
+      // 検索結果が空なら新規作成
+      const docRef = await firebase.firestore().collection("User").doc();
+      const newUserInfo = {
+        avatar: avatar,
+        // emailaddress: string;
+        userId: currentUser.uid,
+        name: titleText,
+        text: "",
+        createdAt: firebase.firestore.Timestamp.now(),
+        file: remotePath,
+      } as UserInfo;
+      await docRef.set(newUserInfo);
+    } else {
+      // すでにデータが有ったら上書き
+
+      const docID = snapshot.docs[0].id;
+      let userInfo = snapshot.docs[0].data() as UserInfo;
+
+      //古いアイコンを削除
+      storageRef.child(userInfo.file).delete();
+
+      userInfo.name = titleText;
+      userInfo.avatar = avatar;
+      userInfo.file = remotePath;
+      const docRef = firebase.firestore().collection("User").doc(docID);
+      docRef.set(userInfo);
+    }
+  
+    // キャッシュを削除
+    FileSystem.deleteAsync(pictureURI);
+    // Homeへ
+    props.navigation.goBack();
+    setPictureURI("");
+
     // カメラロールへ画像を保存
-    const asset = await MediaLibrary.createAssetAsync(selectedImage.localUri);
-
-
-
-
+    // const asset = await MediaLibrary.createAssetAsync(selectedImage.localUri);
     // ストレージの画像リストに追加
-    const newPictureInfo: PictureInfo = {
-      title: titleText,
-      uri: asset.uri,
-      createdAt: moment.now(),
-    };
-    await saveProfileInfoAsync(newPictureInfo);
+    // const newPictureInfo: PictureInfo = {
+    //   title: titleText,
+    //   uri: asset.uri,
+    //   createdAt: moment.now(),
+    // };
+    // await saveProfileInfoAsync(newPictureInfo);
 
     // キャッシュを削除
-    FileSystem.deleteAsync(selectedImage.localUri);
-
-    // Homeへ
-    navigation.goBack();
+    FileSystem.deleteAsync(pictureURICache.current);
   };
 
   const Preview = () => {
     return (
-      
-      <Thumbnail large source={{ uri: selectedImage?.localUri }} style={styles.avatar} />
+      <Thumbnail large source={{ uri: pictureURI }} style={styles.avatar} />
     );
   };
 
@@ -136,7 +177,7 @@ export function ProfileEditScreen({ navigation }: Props) {
           />
         </KeyboardAvoidingView>
         <View style={styles.previewContainer}>
-          {selectedImage?.localUri ? <Preview /> : <Camera />}
+          {pictureURI ? <Preview /> : <Camera />}
         </View>
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.saveButton} onPress={saveAsync}>
@@ -144,7 +185,7 @@ export function ProfileEditScreen({ navigation }: Props) {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.cancelButton}
-            onPress={() => navigation.goBack()}
+            onPress={() => props.navigation.goBack()}
           >
             <Text style={styles.buttonText}>キャンセル</Text>
           </TouchableOpacity>

@@ -35,9 +35,9 @@ import firebase from "firebase";
 // };
 const screenWidth = Dimensions.get("screen").width;
 const screenHeight = Dimensions.get("screen").height;
-type ChatScreenRouteProps = RouteProp<RootStackParamList, "Home">;
+type HomeScreenRouteProps = RouteProp<RootStackParamList, "Home">;
 type Props = {
-  route: ChatScreenRouteProps;
+  route: HomeScreenRouteProps;
 };
 
 export function HomeScreen(props: Props) {
@@ -134,18 +134,21 @@ export function HomeScreen(props: Props) {
 
   // 写真を長押ししたときの処理
   const handleLongPressPicture = (item: Article) => {
-    Alert.alert(item.title, "この写真の削除ができます。", [
-      {
-        text: "キャンセル",
-        style: "cancel",
-      },
-      {
-        text: "削除",
-        onPress: () => {
-          removeArticleAndUpdateAsync(item);
+    
+    if (currentUser.uid === item.userId){
+      Alert.alert(item.title, "この写真の削除ができます。", [
+        {
+          text: "キャンセル",
+          style: "cancel",
         },
-      },
-    ]);
+        {
+          text: "削除",
+          onPress: () => {
+            removeArticleAndUpdateAsync(item);
+          },
+        },
+      ]);
+    }
   };
   // 画面遷移
   const navigation = useNavigation();
@@ -153,7 +156,7 @@ export function HomeScreen(props: Props) {
     navigation.navigate("Add");
   };
   const handleProfileButton = () => {
-    navigation.navigate("Profile");
+    navigation.navigate("Profile",{user:currentUser});
   };
   const handleHomeButton = () => {
     navigation.navigate("Home");
