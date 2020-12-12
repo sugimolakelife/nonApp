@@ -20,6 +20,7 @@ import { savePictureInfoAsync } from "../Store";
 import { StackNavigationProp } from "@react-navigation/stack";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import firebase from "firebase";
 
 // ナビゲーション情報を設定
 type Props = {
@@ -30,7 +31,11 @@ const screenWidth = Dimensions.get("screen").width;
 
 export function AddScreen({ navigation }: Props) {
   const [titleText, setTitleText] = useState("");
+  const [pictureURI, setPictureURI] = useState("");
   const pictureURICache = React.useRef("");
+  const getArticleDocRef = async () => {
+    return await firebase.firestore().collection("article").doc();
+  };
 
   // カメラロール
   interface SelectedImageInfo {
@@ -78,6 +83,28 @@ export function AddScreen({ navigation }: Props) {
       return;
     }
 
+    const storageRef = firebase.storage().ref("Photo");
+    const remotePath = `${moment.now()}.jpg`;
+    const ref = storageRef.child(remotePath);
+    // const url = await ref.getDownloadURL();
+    const response = await fetch(selectedImage.localUri);
+    // const responses = await fetch(url); //←
+    const blob = await response.blob();
+    // const bloba = await responses.blob() //←
+    const task = await ref.put(blob);
+    const photoURI = await task.ref.getDownloadURL();
+    const docRef = await getArticleDocRef();
+    const newArticle = {
+      PhotoURI: photoURI,
+      title: titleText,
+      text: "",
+      createdAt: firebase.firestore.Timestamp.now(),
+      userId: "",
+      file: remotePath,
+    } as Article;
+    await docRef.set(newArticle);
+    
+
     // カメラロールへ画像を保存
     const asset = await MediaLibrary.createAssetAsync(selectedImage.localUri);
 
@@ -95,6 +122,7 @@ export function AddScreen({ navigation }: Props) {
 
     // Homeへ
     navigation.goBack();
+    setPictureURI("");
   };
 
   const Preview = () => {
@@ -123,7 +151,7 @@ export function AddScreen({ navigation }: Props) {
         >
           <TextInput
             style={styles.titleInput}
-            placeholder="タイトル"
+            placeholder="テキストを入力"
             onChangeText={(value) => setTitleText(value)}
             maxLength={100}
           />

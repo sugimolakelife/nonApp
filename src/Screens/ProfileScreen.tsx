@@ -22,7 +22,7 @@ type Props = {
 
 export function ProfileScreen({ navigation }: Props) {
   const [profileInfo, setProfileInfo] = useState<PictureInfo>();
-  var user = firebase.auth().currentUser;
+  const user = firebase.auth().currentUser;
 
   // 画像リストをストレージから読み込み、更新する
   const updateProfileInfoAsync = async () => {
@@ -67,29 +67,29 @@ export function ProfileScreen({ navigation }: Props) {
       //   const data = snapShot.data();
       //   console.log((await ref).id, data );
 
-//       if (user != null) {
-//         user.providerData.forEach(function (profile) {
-//           console.log("Sign-in provider: " + profile.providerId);
-//           console.log("  Provider-specific UID: " + profile.uid);
-//           console.log("  Name: " + profile.displayName);
-//           console.log("  Email: " + profile.email);
-//           console.log("  Photo URL: " + profile.photoURL);
-//           console.log(user?.email);
-//         });
-//       }
+      // if (user != null) {
+      //   user.providerData.forEach(function (profile) {
+      //     console.log("Sign-in provider: " + profile.providerId);
+      //     console.log("  Provider-specific UID: " + profile.uid);
+      //     console.log("  Name: " + profile.displayName);
+      //     console.log("  Email: " + profile.email);
+      //     console.log("  Photo URL: " + profile.photoURL);
+      //     console.log(user?.displayName);
+      //   });
+      // }
 
 
-//       user
-//         .updateProfile({
-//           displayName: "Jane Q. User",
-//           photoURL: "https://example.com/jane-q-user/profile.jpg",
-//         })
-//         .then(function () {
-//           // Update successful.
-//         })
-//         .catch(function (error) {
-//           // An error happened.
-//         });
+      // user
+      //   .updateProfile({
+      //     displayName: "Jane Q. User",
+      //     photoURL: "https://example.com/jane-q-user/profile.jpg",
+      //   })
+      //   .then(function () {
+      //     // Update successful.
+      //   })
+      //   .catch(function (error) {
+      //     // An error happened.
+      //   });
 
 // console.log("test");
   };
@@ -126,7 +126,7 @@ export function ProfileScreen({ navigation }: Props) {
           style={styles.avatar}
         />
         <View style={styles.pictureInfoContainer}>
-          <Text style={styles.pictureTitle}>{`${profileInfo?.title}`}</Text>
+          <Text style={styles.pictureTitle}>{`${user?.displayName}`}</Text>
         </View>
 
         <TouchableOpacity style={styles.editButton} onPress={handleEditButton}>

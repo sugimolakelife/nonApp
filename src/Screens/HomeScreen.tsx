@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -30,7 +29,6 @@ import { loadPictureInfoListAsync, removePictureInfoAsync } from "../Store";
 import Icon from "react-native-vector-icons/FontAwesome";
 import firebase from "firebase";
 
-
 // ナビゲーション情報を設定
 // type Props = {
 //   navigation: StackNavigationProp<RootStackParamList, "Home">;
@@ -43,10 +41,35 @@ type Props = {
 };
 
 export function HomeScreen(props: Props) {
-  
   const currentUser = props.route.params.user;
   const [hasPermission, setHasPermission] = useState(false);
-  const [pictureInfoList, setPictureInfoList] = useState<PictureInfo[]>([]);
+  // const [pictureInfoList, setPictureInfoList] = useState<PictureInfo[]>([]);
+  const [ArticleList, setArticleList] = useState<Article[]>([]);
+
+  useEffect(() => {
+    //この中をまるまる変更(関数getMessagesの中身をここに記述)
+    const article = [] as Article[];
+    /* const unsubscribe = の部分を追加 */
+    const unsubscribe = firebase
+      .firestore()
+      .collection("article")
+      .orderBy("createdAt")
+      .onSnapshot((snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+          //変化の種類が"added"だったときの処理
+          if (change.type === "added") {
+            //今アプリにもっているarticleに取得した差分を追加
+            article.unshift(change.doc.data() as Article);
+          }
+        });
+        
+        setArticleList(article.slice());
+
+        
+      });
+    /* この部分を追加 */
+    return unsubscribe; //リスナーのデタッチ
+  }, []);
 
   // アプリの初期化
   const initAppAsync = async () => {
@@ -58,30 +81,59 @@ export function HomeScreen(props: Props) {
   };
 
   // 画像リストをストレージから読み込み、更新する
-  const updatePictureInfoListAsync = async () => {
-    const newPictureInfoList = await loadPictureInfoListAsync();
-    setPictureInfoList(newPictureInfoList.reverse());
-  };
+
+  // const updatePictureInfoListAsync = async () => {
+  //   const newPictureInfoList = await loadPictureInfoListAsync();
+  //   setArticleList(article.slice());
+  // };
 
   // 初期化処理
   React.useEffect(() => {
     initAppAsync();
   }, []);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      updatePictureInfoListAsync();
-    }, [])
-  );
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     updatePictureInfoListAsync();
+  //   }, [])
+  // );
 
   // 画像情報の削除処理 + 画面更新
-  const removePictureInfoAndUpdateAsync = async (pictureInfo: PictureInfo) => {
-    await removePictureInfoAsync(pictureInfo);
-    updatePictureInfoListAsync();
+  // const removePictureInfoAndUpdateAsync = async (pictureInfo: PictureInfo) => {
+  //   await removePictureInfoAsync(pictureInfo);
+  //   updatePictureInfoListAsync();
+  // };
+
+  const removeArticleAsync = async (article: Article) => {
+    alert("消去しました");
+    try {
+      // Create a reference to the file to delete
+      const storageRef = firebase.storage().ref("Photo");
+      const deleteRef = storageRef.child(article.file);
+      // Delete the file
+      deleteRef.delete();
+    } catch (error) {
+      alert("Delete Storage " + error.toString());
+    }
+    try {
+      const query = firebase
+        .firestore()
+        .collection("article")
+        .where("createdAt", "==", article.createdAt);
+      const docs = await query.get();
+      docs.forEach((result) => {
+        result.ref.delete();
+      });
+    } catch (error) {
+      alert("Delete Firestore " + error.toString());
+    }
+  };
+  const removeArticleAndUpdateAsync = async (article: Article) => {
+    await removeArticleAsync(article);
   };
 
   // 写真を長押ししたときの処理
-  const handleLongPressPicture = (item: PictureInfo) => {
+  const handleLongPressPicture = (item: Article) => {
     Alert.alert(item.title, "この写真の削除ができます。", [
       {
         text: "キャンセル",
@@ -90,7 +142,7 @@ export function HomeScreen(props: Props) {
       {
         text: "削除",
         onPress: () => {
-          removePictureInfoAndUpdateAsync(item);
+          removeArticleAndUpdateAsync(item);
         },
       },
     ]);
@@ -111,30 +163,28 @@ export function HomeScreen(props: Props) {
     return <Text>カメラ及びカメラロールへのアクセス許可が有りません。</Text>;
   };
 
-  const renderPictureInfo = ({ item }: ListRenderItemInfo<PictureInfo>) => {
+  const renderPictureInfo = ({ item }: ListRenderItemInfo<Article>) => {
     return (
       <TouchableOpacity onLongPress={() => handleLongPressPicture(item)}>
         <View style={styles.pictureInfoContainer}>
           <Text style={styles.pictureTitle}>{item.title}</Text>
-          <Image style={styles.picture} source={{ uri: item.uri }} />
+          <Image style={styles.picture} source={{ uri: item.PhotoURI }} />
           <Text style={styles.timestamp}>
-            撮影日時: {moment(item.createdAt).format("YYYY/MM/DD HH:mm:ss")}
+            撮影日時:{" "}
+            {moment(item.createdAt.toDate()).format("YYYY/MM/DD HH:mm:ss")}
           </Text>
         </View>
       </TouchableOpacity>
     );
   };
 
-
-
-  
   // FlatList部分
   const PictureDiaryList = () => {
     return (
       <View style={{ flex: 1 }}>
-          <Text>{currentUser.email}でログイン中</Text>
+        <Text>{currentUser.email}でログイン中</Text>
         <FlatList
-          data={pictureInfoList}
+          data={ArticleList}
           renderItem={renderPictureInfo}
           keyExtractor={(item) => `${item.createdAt}`}
         />

@@ -21,6 +21,8 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import man from "../../assets/icons8-person-64.png";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Thumbnail } from "native-base";
+import firebase from "firebase";
+
 
 
 
@@ -31,6 +33,7 @@ type Props = {
 export function ProfileEditScreen({ navigation }: Props) {
   const [titleText, setTitleText] = useState("");
   const pictureURICache = React.useRef("");
+  const user = firebase.auth().currentUser;
 
   interface SelectedImageInfo {
     localUri: string;
@@ -80,6 +83,9 @@ export function ProfileEditScreen({ navigation }: Props) {
 
     // カメラロールへ画像を保存
     const asset = await MediaLibrary.createAssetAsync(selectedImage.localUri);
+
+
+
 
     // ストレージの画像リストに追加
     const newPictureInfo: PictureInfo = {

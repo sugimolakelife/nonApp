@@ -46,7 +46,7 @@ export function SignupScreen() {
       <KeyboardAvoidingView style={styles.container}>
         <View style={styles.titleAndFieldView}>
           <Text style={styles.screenTitle}>
-            Petgram
+            新規登録
             <Icon name="github" size={45} />
           </Text>
           <TextInput
@@ -77,7 +77,7 @@ export function SignupScreen() {
                 Backボタンには前の画面に戻るだけの関数。 */}
         <View style={styles.includeButtons}>
           <Button
-            title="                 Next                 "
+            title="Next"
             onPress={() => {
               pressedSubmit(email, password);
             }}

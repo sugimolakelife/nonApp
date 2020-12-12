@@ -23,3 +23,13 @@ interface PictureInfo {
     uid: string;
 };
 
+type Article = {
+    PhotoURI: string;
+    title: string;
+    text: string;
+    createdAt: firebase.firestore.Timestamp;
+    userId: string;
+    file: string;
+};
+
+

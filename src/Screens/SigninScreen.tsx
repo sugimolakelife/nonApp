@@ -55,7 +55,7 @@ export function SigninScreen() {
       <KeyboardAvoidingView style={styles.container}>
         <View style={styles.titleAndFieldView}>
           
-          <Text style={styles.screenTitle}>Sign In!</Text>
+          <Text style={styles.screenTitle}>ログイン</Text>
           <TextInput
             style={styles.inputField}
             placeholder="メールアドレスを入力"
