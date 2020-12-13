@@ -11,9 +11,11 @@ import {
   SafeAreaView,
   Alert,
   StatusBar,
+  Image
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import firebase from "firebase";
+import non from "../../assets/non.png";
 
 export function SigninScreen() {
   const [email, setEmail] = useState("");
@@ -54,7 +56,7 @@ export function SigninScreen() {
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView style={styles.container}>
         <View style={styles.titleAndFieldView}>
-          
+          <Image source={non} />
           <Text style={styles.screenTitle}>ログイン</Text>
           <TextInput
             style={styles.inputField}

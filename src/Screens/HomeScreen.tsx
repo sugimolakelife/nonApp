@@ -9,25 +9,25 @@ import {
   ListRenderItemInfo,
   TouchableOpacity,
   Alert,
-  Button,
 } from "react-native";
 import moment from "moment";
 import home from "../../assets/icons8-home-50.png";
 import man from "../../assets/icons8-person-64.png";
+import non from "../../assets/non.png";
+
+import hurt from "../../assets/hurt.png"
 
 // モジュールを追加
-import { StackNavigationProp } from "@react-navigation/stack";
 import * as ImagePicker from "expo-image-picker";
 
 import {
-  useFocusEffect,
   RouteProp,
   useNavigation,
 } from "@react-navigation/native";
-import { loadPictureInfoListAsync, removePictureInfoAsync } from "../Store";
 
 import Icon from "react-native-vector-icons/FontAwesome";
 import firebase from "firebase";
+import { Left } from "native-base";
 
 // ナビゲーション情報を設定
 // type Props = {
@@ -48,24 +48,38 @@ export function HomeScreen(props: Props) {
 
   useEffect(() => {
     //この中をまるまる変更(関数getMessagesの中身をここに記述)
-    const article = [] as ArticleContainer[];
+    const articles: ArticleContainer[] = [];
     /* const unsubscribe = の部分を追加 */
     const unsubscribe = firebase
       .firestore()
       .collection("article")
       .orderBy("createdAt")
       .onSnapshot((snapshot) => {
-        snapshot.docChanges().forEach((change) => {
+        snapshot.docChanges().forEach(async (change) => {
           //変化の種類が"added"だったときの処理
           if (change.type === "added") {
             //今アプリにもっているarticleに取得した差分を追加
-            article.unshift(change.doc.data() as ArticleContainer);
+            const article: Article = change.doc.data() as Article;
+            const query = firebase
+              .firestore()
+              .collection("User")
+              .where("userId", "==", article.userId);
+            const snapshot = await query.get();
+            const user = snapshot.docs[0].data() as UserInfo;
+            const newArticleContainer: ArticleContainer = {
+              PhotoURI: article.PhotoURI,
+              title: article.title,
+              text: article.text,
+              createdAt: article.createdAt,
+              userId: article.userId,
+              file: article.file,
+              avatar: user.avatar,
+              name: user.name,
+            };
+            articles.unshift(newArticleContainer);
           }
+          setArticleList(articles.slice());
         });
-        
-        setArticleList(article.slice());
-
-        
       });
     /* この部分を追加 */
     return unsubscribe; //リスナーのデタッチ
@@ -104,8 +118,55 @@ export function HomeScreen(props: Props) {
   //   updatePictureInfoListAsync();
   // };
 
-  const removeArticleAsync = async (article: Article) => {
-    alert("消去しました");
+  // const removeArticleAsync = async (article: ArticleContainer) => {
+  //   alert("消去しました");
+  //   try {
+  //     // Create a reference to the file to delete
+  //     const storageRef = firebase.storage().ref("Photo");
+  //     const deleteRef = storageRef.child(article.file);
+  //     // Delete the file
+  //     deleteRef.delete();
+  //   } catch (error) {
+  //     alert("Delete Storage " + error.toString());
+  //   }
+  //   try {
+  //     const query = firebase
+  //       .firestore()
+  //       .collection("article")
+  //       .where("createdAt", "==", article.createdAt);
+  //     const docs = await query.get();
+  //     docs.forEach((result) => {
+  //       result.ref.delete();
+  //     });
+  //   } catch (error) {
+  //     alert("Delete Firestore " + error.toString());
+  //   }
+  // };
+  // const removeArticleAndUpdateAsync = async (article: ArticleContainer) => {
+  //   await removeArticleAsync(article);
+  // };
+
+  // // 写真を長押ししたときの処理
+  // const handleLongPressPicture = (item: ArticleContainer) => {
+
+  //   if (currentUser.uid === item.userId){
+  //     Alert.alert(item.title, "この写真の削除ができます。", [
+  //       {
+  //         text: "キャンセル",
+  //         style: "cancel",
+  //       },
+  //       {
+  //         text: "削除",
+  //         onPress: () => {
+  //           removeArticleAndUpdateAsync(item);
+  //         },
+  //       },
+  //     ]);
+  //   }
+  // };
+  // 画像情報の削除処理 + 画面更新
+  const removeArticleAsync = async (article: ArticleContainer) => {
+    // alert('test');
     try {
       // Create a reference to the file to delete
       const storageRef = firebase.storage().ref("Photo");
@@ -131,12 +192,11 @@ export function HomeScreen(props: Props) {
   const removeArticleAndUpdateAsync = async (article: ArticleContainer) => {
     await removeArticleAsync(article);
   };
-
+  
   // 写真を長押ししたときの処理
   const handleLongPressPicture = (item: ArticleContainer) => {
-    
-    if (currentUser.uid === item.userId){
-      Alert.alert(item.title, "この写真の削除ができます。", [
+    if (currentUser.uid === item.userId) {
+      Alert.alert(item.title, "削除しますか？", [
         {
           text: "キャンセル",
           style: "cancel",
@@ -153,10 +213,10 @@ export function HomeScreen(props: Props) {
   // 画面遷移
   const navigation = useNavigation();
   const handleAddButton = () => {
-    navigation.navigate("Add",{user:currentUser});
+    navigation.navigate("Add", { user: currentUser });
   };
   const handleProfileButton = () => {
-    navigation.navigate("Profile",{user:currentUser});
+    navigation.navigate("Profile", { user: currentUser });
   };
   const handleHomeButton = () => {
     navigation.navigate("Home");
@@ -166,21 +226,24 @@ export function HomeScreen(props: Props) {
     return <Text>カメラ及びカメラロールへのアクセス許可が有りません。</Text>;
   };
 
-  const renderPictureInfo = ({ item }: ListRenderItemInfo<ArticleContainer>) => {
+  const renderPictureInfo = ({
+    item,
+  }: ListRenderItemInfo<ArticleContainer>) => {
     return (
       <TouchableOpacity onLongPress={() => handleLongPressPicture(item)}>
         <View style={styles.userContainer}>
+          
+            <Image style={styles.avatar} source={{ uri: item.avatar }} />
+            
           <Text style={styles.username}> {item.name} </Text>
-          <Image
-            style={{ width: 50, height: 50 }}
-            source={{ uri: item.avatar }}
-          />
         </View>
         <View style={styles.pictureInfoContainer}>
-          <Text style={styles.pictureTitle}>{item.title}</Text>
           <Image style={styles.picture} source={{ uri: item.PhotoURI }} />
+          <View style={styles.hurtContainer}>
+            <Image source={hurt} style={styles.hurt} />
+            <Text style={styles.pictureTitle}>{item.title}</Text>
+          </View>
           <Text style={styles.timestamp}>
-            撮影日時:{" "}
             {moment(item.createdAt.toDate()).format("YYYY/MM/DD HH:mm:ss")}
           </Text>
         </View>
@@ -192,7 +255,7 @@ export function HomeScreen(props: Props) {
   const PictureDiaryList = () => {
     return (
       <View style={{ flex: 1 }}>
-        <Text>{currentUser.email}でログイン中</Text>
+          <Image source={non} />
         <FlatList
           data={ArticleList}
           renderItem={renderPictureInfo}
@@ -253,6 +316,7 @@ const styles = StyleSheet.create({
   },
   timestamp: {
     fontSize: 15,
+    marginBottom:20
   },
   footer: {
     textAlign: "center",
@@ -298,5 +362,22 @@ const styles = StyleSheet.create({
   },
   userContainer: {
     flexDirection: "row",
+    borderTopWidth:1,
+    borderColor:"gray"
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 50,
+    marginLeft: 10,
+    marginTop:7
+  },
+  hurtContainer: {
+    flexDirection: "row",
+  },
+  hurt: {
+    width: 50,
+    height: 50,
+    right:100,
   },
 });

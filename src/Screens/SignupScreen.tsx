@@ -11,10 +11,13 @@ import {
   SafeAreaView,
   Alert,
   StatusBar,
+  Image
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import firebase from "firebase";
 import Icon from "react-native-vector-icons/FontAwesome";
+import non from "../../assets/non.png";
+
 export function SignupScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,9 +48,9 @@ export function SignupScreen() {
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView style={styles.container}>
         <View style={styles.titleAndFieldView}>
+          <Image source={non}/>
           <Text style={styles.screenTitle}>
             新規登録
-            <Icon name="github" size={45} />
           </Text>
           <TextInput
             style={styles.inputField}

@@ -22,6 +22,7 @@ import Icon from "react-native-vector-icons/FontAwesome";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import firebase from "firebase";
 import { RouteProp } from "@react-navigation/native";
+import non from "../../assets/non.png";
 
 // ナビゲーション情報を設定
 type Props = {
@@ -152,6 +153,15 @@ export function AddScreen(props: Props) {
   return (
     <KeyboardAwareScrollView>
       <View style={styles.container}>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.saveButton} onPress={saveAsync}>
+            <Text style={styles.buttonText}>シェア</Text>
+          </TouchableOpacity>
+          
+        </View>
+        <View style={styles.previewContainer}>
+          {selectedImage?.localUri ? <Preview /> : <Camera />}
+        </View>
         <KeyboardAvoidingView
           style={styles.titleInputConatiner}
           behavior={Platform.OS == "ios" ? "padding" : "height"}
@@ -163,21 +173,6 @@ export function AddScreen(props: Props) {
             maxLength={100}
           />
         </KeyboardAvoidingView>
-        <View style={styles.previewContainer}>
-          {selectedImage?.localUri ? <Preview /> : <Camera />}
-        </View>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.saveButton} onPress={saveAsync}>
-            <Text style={styles.buttonText}>保存</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.buttonText}>キャンセル</Text>
-          </TouchableOpacity>
-
-        </View>
       </View>
     </KeyboardAwareScrollView>
   );
@@ -196,13 +191,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   titleInput: {
-    flex: 0.9,
+    flex: 0.8,
     color: "#000",
     fontSize: 20,
     borderWidth: 2,
     borderRadius: 10,
     backgroundColor: "#fff",
     padding: 3,
+    marginTop:10,
+    marginBottom:10
   },
   cameraButton: {
     width: screenWidth * 0.8,
@@ -225,15 +222,17 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     justifyContent: "space-around",
-    alignItems: "center",
+    alignItems: "flex-start",
     width: "100%",
+    marginTop:10,
+    marginBottom:10
   },
   saveButton: {
-    backgroundColor: "#77f",
     padding: 5,
     borderRadius: 10,
-    width: 120,
+    width: 75,
     alignItems: "center",
+    borderWidth:2,
   },
   cancelButton: {
     backgroundColor: "#f77",

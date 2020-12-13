@@ -165,6 +165,9 @@ export function ProfileEditScreen(props: Props) {
   return (
     <KeyboardAwareScrollView>
       <View style={styles.container}>
+        <TouchableOpacity style={styles.saveButton} onPress={saveAsync}>
+          <Text style={styles.buttonText}>保存</Text>
+        </TouchableOpacity>
         <KeyboardAvoidingView
           style={styles.titleInputConatiner}
           behavior={Platform.OS == "ios" ? "padding" : "height"}
@@ -179,17 +182,7 @@ export function ProfileEditScreen(props: Props) {
         <View style={styles.previewContainer}>
           {pictureURI ? <Preview /> : <Camera />}
         </View>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.saveButton} onPress={saveAsync}>
-            <Text style={styles.buttonText}>保存</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={() => props.navigation.goBack()}
-          >
-            <Text style={styles.buttonText}>キャンセル</Text>
-          </TouchableOpacity>
-        </View>
+        <View style={styles.buttonContainer}></View>
       </View>
     </KeyboardAwareScrollView>
   );
@@ -242,11 +235,13 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   saveButton: {
-    backgroundColor: "#77f",
     padding: 5,
     borderRadius: 10,
-    width: 120,
+    width: 75,
     alignItems: "center",
+    borderWidth: 2,
+    marginBottom:10,
+    marginTop:10
   },
   cancelButton: {
     backgroundColor: "#f77",
