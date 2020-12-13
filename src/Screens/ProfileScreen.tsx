@@ -13,28 +13,36 @@ import {
 import man from "../../assets/icons8-person-64.png";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { loadProfileInfoAsync, removeProfileInfoAsync } from "../Store";
-import { RouteProp, useFocusEffect } from "@react-navigation/native";
+import { RouteProp, useFocusEffect, useIsFocused } from "@react-navigation/native";
 import firebase from "firebase";
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, "Profile">;
-  route: RouteProp<RootStackParamList, 'Profile'>;
+  route: RouteProp<RootStackParamList, "Profile">;
 };
 
 export function ProfileScreen(props: Props) {
-  const [profileInfo, setProfileInfo] = useState<PictureInfo>();
+  const [profileInfo, setProfileInfo] = useState<UserInfo>();
   const currentUser = props.route.params.user;
   const navigation = props.navigation;
+  const isFocused = useIsFocused();
 
   // 画像リストをストレージから読み込み、更新する
   const updateProfileInfoAsync = async () => {
-    const newProfileInfo = await loadProfileInfoAsync();
-    setProfileInfo(newProfileInfo);
+    const query = await firebase
+      .firestore()
+      .collection("User")
+      .where("userId", "==", currentUser.uid);
+    const snapshot = await query.get();
+    const userInfo = snapshot.docs[0].data() as UserInfo;
+    setProfileInfo(userInfo);
   };
 
   useFocusEffect(
     React.useCallback(() => {
-      updateProfileInfoAsync();
+      if(isFocused) {
+        updateProfileInfoAsync();
+      }
     }, [])
   );
   // 画像情報の削除処理 + 画面更新
@@ -44,56 +52,54 @@ export function ProfileScreen(props: Props) {
   };
 
   const handleEditButton = async () => {
-    navigation.navigate("Edit",{user:currentUser});
+    navigation.navigate("Edit", { user: currentUser });
 
     // const db = firebase.firestore();
-      //ドキュメント取得
-        // const doc =await db
-        //   .collection("User")
-        //   .doc("xQkAhENK4lFwn9wkdhcA")
-        //   .get()
-        //   console.log(doc.data());
-          
+    //ドキュメント取得
+    // const doc =await db
+    //   .collection("User")
+    //   .doc("xQkAhENK4lFwn9wkdhcA")
+    //   .get()
+    //   console.log(doc.data());
 
-        //コレクション取得
-        // const snapshot=await db.collection("User").get();
-        //   snapshot.forEach(doc => {
-        //     console.log(doc.id,"=>",doc.data());
-          
-        // });
-      //  const ref = db.collection("User").add({
-      //    name:"田中",
-      //    age:100
-      //   });
-      //   const snapShot = await ref.get();
-      //   const data = snapShot.data();
-      //   console.log((await ref).id, data );
+    //コレクション取得
+    // const snapshot=await db.collection("User").get();
+    //   snapshot.forEach(doc => {
+    //     console.log(doc.id,"=>",doc.data());
 
-      // if (user != null) {
-      //   user.providerData.forEach(function (profile) {
-      //     console.log("Sign-in provider: " + profile.providerId);
-      //     console.log("  Provider-specific UID: " + profile.uid);
-      //     console.log("  Name: " + profile.displayName);
-      //     console.log("  Email: " + profile.email);
-      //     console.log("  Photo URL: " + profile.photoURL);
-      //     console.log(user?.displayName);
-      //   });
-      // }
+    // });
+    //  const ref = db.collection("User").add({
+    //    name:"田中",
+    //    age:100
+    //   });
+    //   const snapShot = await ref.get();
+    //   const data = snapShot.data();
+    //   console.log((await ref).id, data );
 
+    // if (user != null) {
+    //   user.providerData.forEach(function (profile) {
+    //     console.log("Sign-in provider: " + profile.providerId);
+    //     console.log("  Provider-specific UID: " + profile.uid);
+    //     console.log("  Name: " + profile.displayName);
+    //     console.log("  Email: " + profile.email);
+    //     console.log("  Photo URL: " + profile.photoURL);
+    //     console.log(user?.displayName);
+    //   });
+    // }
 
-      // user
-      //   .updateProfile({
-      //     displayName: "Jane Q. User",
-      //     photoURL: "https://example.com/jane-q-user/profile.jpg",
-      //   })
-      //   .then(function () {
-      //     // Update successful.
-      //   })
-      //   .catch(function (error) {
-      //     // An error happened.
-      //   });
+    // user
+    //   .updateProfile({
+    //     displayName: "Jane Q. User",
+    //     photoURL: "https://example.com/jane-q-user/profile.jpg",
+    //   })
+    //   .then(function () {
+    //     // Update successful.
+    //   })
+    //   .catch(function (error) {
+    //     // An error happened.
+    //   });
 
-// console.log("test");
+    // console.log("test");
   };
 
   const unsubscribe = () => {
@@ -104,13 +110,11 @@ export function ProfileScreen(props: Props) {
       .onSnapshot((snapshot) => {});
   };
 
-
   const pressedSignOut = () => {
     firebase
       .auth()
       .signOut()
       .then(() => {
-
         unsubscribe();
         navigation.navigate("SignIn");
       })
@@ -124,11 +128,11 @@ export function ProfileScreen(props: Props) {
       <View style={styles.profileSection}>
         <Thumbnail
           large
-          source={{ uri: profileInfo?.uri }}
+          source={{ uri: profileInfo?.avatar }}
           style={styles.avatar}
         />
         <View style={styles.pictureInfoContainer}>
-          <Text style={styles.pictureTitle}>{`${currentUser.email}`}</Text>
+  <Text style={styles.pictureTitle}>{profileInfo?.name}</Text>
         </View>
 
         <TouchableOpacity style={styles.editButton} onPress={handleEditButton}>

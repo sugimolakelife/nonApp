@@ -44,11 +44,11 @@ export function HomeScreen(props: Props) {
   const currentUser = props.route.params.user;
   const [hasPermission, setHasPermission] = useState(false);
   // const [pictureInfoList, setPictureInfoList] = useState<PictureInfo[]>([]);
-  const [ArticleList, setArticleList] = useState<Article[]>([]);
+  const [ArticleList, setArticleList] = useState<ArticleContainer[]>([]);
 
   useEffect(() => {
     //この中をまるまる変更(関数getMessagesの中身をここに記述)
-    const article = [] as Article[];
+    const article = [] as ArticleContainer[];
     /* const unsubscribe = の部分を追加 */
     const unsubscribe = firebase
       .firestore()
@@ -59,7 +59,7 @@ export function HomeScreen(props: Props) {
           //変化の種類が"added"だったときの処理
           if (change.type === "added") {
             //今アプリにもっているarticleに取得した差分を追加
-            article.unshift(change.doc.data() as Article);
+            article.unshift(change.doc.data() as ArticleContainer);
           }
         });
         
@@ -128,12 +128,12 @@ export function HomeScreen(props: Props) {
       alert("Delete Firestore " + error.toString());
     }
   };
-  const removeArticleAndUpdateAsync = async (article: Article) => {
+  const removeArticleAndUpdateAsync = async (article: ArticleContainer) => {
     await removeArticleAsync(article);
   };
 
   // 写真を長押ししたときの処理
-  const handleLongPressPicture = (item: Article) => {
+  const handleLongPressPicture = (item: ArticleContainer) => {
     
     if (currentUser.uid === item.userId){
       Alert.alert(item.title, "この写真の削除ができます。", [
@@ -153,7 +153,7 @@ export function HomeScreen(props: Props) {
   // 画面遷移
   const navigation = useNavigation();
   const handleAddButton = () => {
-    navigation.navigate("Add");
+    navigation.navigate("Add",{user:currentUser});
   };
   const handleProfileButton = () => {
     navigation.navigate("Profile",{user:currentUser});
@@ -166,9 +166,16 @@ export function HomeScreen(props: Props) {
     return <Text>カメラ及びカメラロールへのアクセス許可が有りません。</Text>;
   };
 
-  const renderPictureInfo = ({ item }: ListRenderItemInfo<Article>) => {
+  const renderPictureInfo = ({ item }: ListRenderItemInfo<ArticleContainer>) => {
     return (
       <TouchableOpacity onLongPress={() => handleLongPressPicture(item)}>
+        <View style={styles.userContainer}>
+          <Text style={styles.username}> {item.name} </Text>
+          <Image
+            style={{ width: 50, height: 50 }}
+            source={{ uri: item.avatar }}
+          />
+        </View>
         <View style={styles.pictureInfoContainer}>
           <Text style={styles.pictureTitle}>{item.title}</Text>
           <Image style={styles.picture} source={{ uri: item.PhotoURI }} />
@@ -284,5 +291,12 @@ const styles = StyleSheet.create({
     top: "50%",
     right: "10%",
     transform: [{ translateY: -40 }],
+  },
+  username: {
+    fontSize: 20,
+    marginTop: 10,
+  },
+  userContainer: {
+    flexDirection: "row",
   },
 });

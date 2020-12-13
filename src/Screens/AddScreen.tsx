@@ -21,18 +21,22 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import firebase from "firebase";
+import { RouteProp } from "@react-navigation/native";
 
 // ナビゲーション情報を設定
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, "Add">;
+  route: RouteProp<RootStackParamList, "Add">;
 };
 
 const screenWidth = Dimensions.get("screen").width;
 
-export function AddScreen({ navigation }: Props) {
+export function AddScreen(props: Props) {
   const [titleText, setTitleText] = useState("");
   const [pictureURI, setPictureURI] = useState("");
   const pictureURICache = React.useRef("");
+  const currentUser = props.route.params.user;
+  const navigation = props.navigation;
   const getArticleDocRef = async () => {
     return await firebase.firestore().collection("article").doc();
   };
@@ -50,7 +54,10 @@ export function AddScreen({ navigation }: Props) {
       alert("カメラロールへのアクセス許可が必要です");
       return;
     }
-    let pickerResult = await ImagePicker.launchImageLibraryAsync();
+    let pickerResult = await ImagePicker.launchImageLibraryAsync({
+      aspect: [1, 1],
+      allowsEditing: true,
+    });
     // カメラロールの準備を先にしておく
     // pikerResultに画像情報を入れる
 
@@ -99,7 +106,7 @@ export function AddScreen({ navigation }: Props) {
       title: titleText,
       text: "",
       createdAt: firebase.firestore.Timestamp.now(),
-      userId: "",
+      userId: currentUser.uid,
       file: remotePath,
     } as Article;
     await docRef.set(newArticle);

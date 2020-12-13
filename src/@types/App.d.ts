@@ -9,7 +9,7 @@ interface PictureInfo {
     type RootStackParamList = {
   //  受け取るパラメータは無いのでundefined
   Home: {user: signedInUser};
-  Add: undefined;
+  Add: {user: signedInUser};
   Profile: {user: signedInUser};
   Edit: {user: signedInUser};
   SignIn: undefined;
